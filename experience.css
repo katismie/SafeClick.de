@@ -268,3 +268,22 @@ footer.site-footer{padding-top:40px}
 .specs-list details[open] summary::after{transform:translateY(-25%) rotate(225deg)}
 .specs-list summary:focus-visible{outline:2px solid var(--blue);outline-offset:-3px}
 .specs-list details p{max-width:72ch;margin:0 auto;padding:0 16px 20px;text-align:left}
+
+.price-cta{font-family:inherit;cursor:pointer}
+.price-dialog{position:fixed;inset:0;margin:auto;width:min(920px,calc(100% - 24px));max-height:calc(100dvh - 24px);overflow:auto;overscroll-behavior:contain;padding:clamp(16px,4vw,32px);border:0;border-radius:24px;background:var(--paper);color:var(--ink);text-align:center}
+.price-dialog::backdrop{background:#08090b70}
+.price-dialog h2{margin:12px 28px;font-size:clamp(26px,5vw,50px);line-height:1.12}
+.price-intro{margin:0 0 24px;color:#595b62}
+.price-close{position:absolute;top:10px;right:10px;width:44px;height:44px;border:0;border-radius:50%;background:#fff;color:inherit;font:28px/1 system-ui;cursor:pointer}
+.price-panel{padding:clamp(14px,4vw,24px);border-radius:20px;background:#fff;text-align:left}
+.price-breakdown{margin:0 0 20px}
+.price-breakdown>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 0;border-bottom:1px solid #e4e4e8}
+.price-breakdown dt{font-weight:600;overflow-wrap:anywhere}
+.price-breakdown dd{margin:0;text-align:right;white-space:nowrap}
+.price-breakdown strong,.price-total strong{font-size:clamp(26px,5vw,42px);font-weight:650}
+.price-breakdown small{display:block;margin-top:4px;color:#595b62;font-size:.875em;font-weight:400}
+.price-total{padding:16px;border-radius:14px;background:var(--paper)}
+.price-total p{margin:0;color:#595b62}
+.price-benefits{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}
+.price-benefits li{padding-left:24px;position:relative}
+.price-benefits li::before{content:'✓';position:absolute;left:0;color:#326534}
