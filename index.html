@@ -37,7 +37,7 @@ model-viewer::part(default-progress-bar){display:none}
  .copy p{font-size:14px;line-height:1.35}
 }
 </style>
-<link rel="stylesheet" href="./experience.css?v=lifestyle-slide-4">
+<link rel="stylesheet" href="./experience.css?v=specs-accordion-1">
 <noscript><style>.page-loader{display:none}</style></noscript>
 </head>
 <body>
@@ -101,12 +101,48 @@ model-viewer::part(default-progress-bar){display:none}
 <section class="technical-specs" id="technische-eigenschaften" aria-labelledby="specs-title">
  <h2 id="specs-title" data-spec-reveal>Technische Eigenschaften</h2>
  <ul class="specs-list">
-  <li data-spec-reveal>Eigenständige Mobilfunkverbindung</li>
-  <li data-spec-reveal>Integrierte Standortbestimmung</li>
-  <li data-spec-reveal>Zweistufige Aktivierung</li>
-  <li data-spec-reveal>Kompaktes Gehäuse</li>
-  <li data-spec-reveal>Energieeffiziente Technik</li>
-  <li data-spec-reveal>Geplante professionelle SOS-Anbindung</li>
+  <li>
+   <details>
+    <summary>Eigenständige Mobilfunkverbindung</summary>
+    <p>SafeClick verfügt über eine eigene Mobilfunkverbindung und ist für die Nutzung nicht auf ein mitgeführtes Smartphone angewiesen. Im aktivierten Zustand kann das Gerät Standortinformationen und SOS-Meldungen über das Mobilfunknetz übertragen. Die Einrichtung und Verwaltung der Vertrauenspersonen erfolgen über eine separate Einrichtungslösung. Für die Mobilfunkverbindung ist ein Abonnement vorgesehen.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>Integrierte Standortbestimmung</summary>
+    <p>SafeClick ist mit einer eigenständigen Standortbestimmung konzipiert. Im ON-Modus kann die ermittelte Position an zuvor ausgewählte Vertrauenspersonen übermittelt werden. Im ausgeschalteten Zustand (OFF) ist die Stromversorgung mechanisch unterbrochen, sodass keine aktive Standortbestimmung oder Standortübertragung stattfindet. Die Genauigkeit der Positionsbestimmung hängt von der eingesetzten Technologie und den Umgebungsbedingungen ab.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>Zweistufige Aktivierung</summary>
+    <p>SafeClick wird durch zwei einfache mechanische Bewegungen bedient. Durch Drehen des vorderen Gehäuseteils von OFF auf ON wird das Gerät eingeschaltet und die Standortfreigabe aktiviert. Werden anschließend die beiden Gehäuseteile zusammengedrückt, wird ein separates SOS-Signal ausgelöst. Beim Einschalten aus dem OFF-Modus benötigt das System voraussichtlich etwa 30 Sekunden für den Start und den Verbindungsaufbau. Wer SafeClick bereits vor einer potenziell unsicheren Situation einschaltet, vermeidet diesen initialen Kaltstart bei einer späteren SOS-Auslösung.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>Kompaktes Gehäuse</summary>
+    <p>Das kompakte, zylindrische Gehäuse ist für den unauffälligen Einsatz im Alltag gestaltet. SafeClick kann beispielsweise am Schlüsselbund, an einer Tasche oder am Rucksack getragen werden. Die mechanische Bedienung ermöglicht eine Aktivierung direkt am Gerät. Bei der Konstruktion soll außerdem berücksichtigt werden, dass ein unbeabsichtigtes Auslösen des SOS-Signals beim Transport möglichst verhindert wird.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>Energieeffiziente Technik</summary>
+    <p>Im OFF-Modus wird die Stromversorgung von SafeClick mechanisch unterbrochen. Dadurch verbraucht die Elektronik in diesem Zustand keine Betriebsenergie. Erst beim Drehen in die ON-Position wird das System mit Strom versorgt und startet die Mobilfunkverbindung. Dieser Kaltstart benötigt voraussichtlich etwa 30 Sekunden. Wie lange die Lithiumbatterie im ON-Modus hält, hängt vom tatsächlichen Energieverbrauch und der Nutzung ab.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>Professionelle SOS-Anbindung</summary>
+    <p>Die Weiterleitung von SOS-Meldungen an eine professionelle Notruf- und Serviceleitstelle ist vorgesehen.</p>
+   </details>
+  </li>
+  <li>
+   <details>
+    <summary>SafeClick App &amp; Einrichtung</summary>
+    <p>Für die Einrichtung von SafeClick und die Verwaltung der Vertrauenspersonen ist eine separate Einrichtungslösung vorgesehen.</p>
+   </details>
+  </li>
  </ul>
 </section>
 
@@ -168,7 +204,6 @@ function startEntrance(){if(!reduced){
     fitHero();
   }
   revealLines(true);
-  document.querySelector('.specs-list').classList.add('spec-lines-ready');
   const specsObserver=new IntersectionObserver(entries=>{entries.forEach(entry=>{
     if(!entry.isIntersecting)return;
     const el=entry.target;revealedSpecs.add(el);el.classList.add('is-revealed');
