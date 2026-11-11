@@ -20,7 +20,7 @@ const lifestylePin=lifestyle.querySelector('.lifestyle-pin');
 const lifestylePlay=lifestyle.querySelector('.lifestyle-play');
 let lifestyleVisible=false, lifestyleFullscreen=false;
 function updateLifestylePlayback(){
- const available=lifestyleVisible&&lifestyleFullscreen&&!document.hidden;
+ const available=Boolean(slideVideos[activeSlide])&&lifestyleVisible&&lifestyleFullscreen&&!document.hidden;
  lifestylePlay.hidden=!available;
  if(!available){
   lifestyleVideo.pause();
@@ -57,8 +57,10 @@ function moveLifestyleSlide(step){
  if(next===activeSlide)return;
  lifestyleVideo.pause();
  lifestylePhoto.classList.remove('is-video');
- lifestyleVideo.setAttribute('src',slideVideos[next]);
+ if(slideVideos[next])lifestyleVideo.setAttribute('src',slideVideos[next]);
+ else{lifestyleVideo.removeAttribute('src');lifestyleVideo.load()}
  activeSlide=next;
+ updateLifestylePlayback();
  lifestylePhoto.dataset.slide=String(next);
  lifestyleCopies.forEach((copy,index)=>{copy.hidden=index!==next});
  slidePhotos.forEach((photo,index)=>photo.setAttribute('aria-hidden',String(index!==next)));
@@ -139,8 +141,7 @@ function paint(state){
  heroPicker.style.opacity=String(1-smooth(.01,.4,state));heroPicker.inert=state>.15;
  if(photoReady){const zoom=smooth(7,8,state),initialWidth=vw*(mobile?.88:.5);lifestylePhoto.style.width=`${interpolate(initialWidth,vw,zoom)}px`;lifestylePhoto.style.height=`${interpolate(initialWidth*941/1670,vh,zoom)}px`;lifestylePhoto.style.borderRadius=`${interpolate(24,0,zoom)}px`;const fullscreen=state>=7.999;if(fullscreen!==lifestyleFullscreen){lifestyleFullscreen=fullscreen;updateLifestylePlayback()}const shade=smooth(8,9,state),text=smooth(7.75,8,state);lifestylePhoto.style.setProperty('--photo-dim',String(shade*.18));lifestylePin.style.setProperty('--slide-width',lifestylePhoto.style.width);
  const activeCopy=lifestyleCopies[activeSlide];
- activeCopy.style.opacity=String(text);
- activeCopy.setAttribute('aria-hidden',String(text<.5));lifestylePhoto.querySelector('.photo-scroll-hint').style.opacity=String(smooth(7.75,8,state))}
+ if(activeCopy){activeCopy.style.opacity=String(text);activeCopy.setAttribute('aria-hidden',String(text<.5))}lifestylePhoto.querySelector('.photo-scroll-hint').style.opacity=String(smooth(7.75,8,state))}
  updateCards(state);
  updateSteps(state);
  if(state>=3.25)positionWorkflowCopy(vh,mobile);
