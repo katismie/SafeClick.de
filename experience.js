@@ -222,7 +222,7 @@ function tick(now){
  const step=motionReduced?distance:Math.sign(distance)*Math.min(Math.abs(distance)*(1-Math.exp(-dt/160)),.022*dt/16);
  let state=Math.abs(distance)<.001?targetState:frameState+step,navigationScroll=null;
  if(menuTransition){
-  const progress=motionReduced?1:Math.max(0,Math.min(1,(now-menuTransition.start)/650));
+  const progress=motionReduced?1:Math.max(0,Math.min(1,(now-menuTransition.start)/(menuTransition.duration??650)));
   const ease=progress*progress*(3-2*progress);
   state=interpolate(menuTransition.from,targetState,ease);
   if(menuTransition.scrollTo!==undefined)navigationScroll=interpolate(menuTransition.scrollFrom,menuTransition.scrollTo,ease);
@@ -239,7 +239,7 @@ function tick(now){
  else{raf=0;lastFrame=0}
 }
 function goTo(value){if(specsJumpTarget!==null){specsJumpTarget=null;window.scrollTo({top:scrollY,behavior:'instant'})}menuTransition=null;targetState=Math.max(firstScene,Math.min(sceneEnd(),value));schedulePaint()}
-function navigateTo(value){photoGestureUntil=0;goTo(value);menuTransition={from:frameState,start:performance.now()}}
+function navigateTo(value,duration=650){photoGestureUntil=0;goTo(value);menuTransition={from:frameState,start:performance.now(),duration}}
 function navigateToShowcase(){goTo(sceneEnd());menuTransition={from:frameState,start:performance.now(),scrollFrom:scrollY,scrollTo:showcaseScrollTop()}}
 paint(firstScene);
 function jumpToSpecs(){specsJumpTarget=showcaseScrollTop();window.scrollTo({top:specsJumpTarget,behavior:motionReduced?'instant':'smooth'})}
@@ -297,7 +297,8 @@ window.addEventListener('touchmove',event=>{
  if(Math.abs(dy)<24)return;
  slideTouch.handled=true;
  const next=direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1;
- navigateTo(next);
+ const openingSwipe=openingPhoto&&frameState<0&&next===0;
+ navigateTo(next,openingSwipe?1500:650);
 },{passive:false});
 window.addEventListener('touchend',event=>{
  if(slideTouch?.axis==='x'&&slideTouch.onPhoto){
