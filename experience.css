@@ -242,7 +242,7 @@ footer.site-footer{padding-top:40px}
 .lifestyle-photo[data-slide="1"] .lifestyle-frames{transform:translateX(-100%)}
 .lifestyle-photo{pointer-events:auto}
 .lifestyle-nav{position:absolute;inset-inline:max(12px,calc((100vw - var(--slide-width,50vw))/2 + 12px));top:50%;transform:translateY(-50%);display:flex;justify-content:space-between;z-index:3;pointer-events:none}
-.lifestyle-nav button{display:grid;place-items:center;width:44px;height:44px;padding:0 0 4px;border:0;border-radius:50%;background:#15151bdd;color:#fff;font:32px/1 system-ui;cursor:pointer;pointer-events:auto}
+.lifestyle-nav button{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:#15151bdd;color:#fff;font:32px/1 system-ui;cursor:pointer;pointer-events:auto}
 .lifestyle-nav button:disabled{visibility:hidden}
 .lifestyle-nav button:focus-visible{outline:2px solid white;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.lifestyle-frames{transition:none}}
@@ -282,9 +282,15 @@ footer.site-footer{padding-top:40px}
 .price-benefits li{padding-left:24px;position:relative}
 .price-benefits li::before{content:'✓';position:absolute;left:0;color:#326534}
 
-.lifestyle-status{position:absolute;left:50%;bottom:calc(max(0px,(100% - var(--slide-height,28vw))/2) + 12px);transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;padding:0 4px 0 12px;border-radius:999px;background:#15151bdd;color:#fff}
+.lifestyle-status{position:absolute;left:50%;bottom:calc(max(0px,(100% - var(--slide-height,28vw))/2) + 12px);transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:8px;color:#fff}
 .lifestyle-count{display:flex;gap:5px}
-.lifestyle-count span{display:block;width:clamp(16px,4vw,32px);height:3px;border-radius:3px;background:#fff6}
-.lifestyle-count .is-current{background:#fff}
+.lifestyle-count button{display:grid;place-items:center;width:clamp(24px,5vw,34px);height:44px;padding:0;border:0;background:transparent;cursor:pointer}
+.lifestyle-count button::before{content:'';width:100%;height:3px;border-radius:3px;background:#ffffff80;box-shadow:0 0 4px #000a}
+.lifestyle-count button[aria-current="true"]::before{background:#fff}
+.lifestyle-count button:focus-visible{outline:2px solid #fff;outline-offset:-4px}
 .lifestyle-autoplay{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font:inherit;cursor:pointer}
 .lifestyle-autoplay:focus-visible{outline:2px solid white;outline-offset:-3px}
+
+.lifestyle-nav button::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:2px 2px 0 0;transform:translateX(-1px) rotate(45deg)}
+.lifestyle-nav button[data-slide-step="-1"]::before{transform:translateX(1px) rotate(225deg)}
+.lifestyle-autoplay{text-shadow:0 0 5px #000}
