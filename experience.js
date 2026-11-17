@@ -105,6 +105,7 @@ window.addEventListener('pagehide',()=>{if(restoring)return;try{sessionStorage.s
 function sceneHeight(){return document.querySelector('.screen').clientHeight}
 function storyTop(){return story.getBoundingClientRect().top+scrollY}
 function interpolate(a,b,t){return a+(b-a)*t}
+const openingPhoto=document.querySelector('.opening-photo');
 function paint(state){
  if(state>0&&heroEntrance){heroEntrance.cancel();heroEntrance=null}
  frameState=state;const t=Math.max(0,Math.min(1,state)),rect=slot.getBoundingClientRect(),vh=sceneHeight(),vw=document.documentElement.clientWidth;
@@ -113,15 +114,31 @@ function paint(state){
  const workflowExit=photoReady&&state>6?Math.min(0,workflowTop()-scrollY):0;
  const end={left:mobile?vw*.025:vw*.12,top:mobile?interpolate(vh*.09,vh*.2,operation):interpolate(vh*.12,vh*.16,operation),width:mobile?vw*.95:vw*.76,height:mobile?vh*.43:vh*.76};
  // Keep the WebGL viewport constant during scrolling. Only the compositor layer moves/scales.
- const visualHeight=interpolate(Math.max(80,rect.height-86)*1.09,end.height,t);
- const centerX=interpolate(rect.left+rect.width/2,end.left+end.width/2,t);
- const centerY=interpolate(heroY+Math.max(80,rect.height-86)/2,end.top+end.height/2,t)+workflowExit;
+ let visualHeight=interpolate(Math.max(80,rect.height-86)*1.09,end.height,t);
+ let centerX=interpolate(rect.left+rect.width/2,end.left+end.width/2,t);
+ let centerY=interpolate(heroY+Math.max(80,rect.height-86)/2,end.top+end.height/2,t)+workflowExit;
+ let modelOpacity=1;
+ if(openingPhoto){
+  openingPhoto.style.opacity=String(1-smooth(.03,.4,state));
+  modelOpacity=smooth(.015,.17,state);
+  if(state<.5&&!motionReduced){
+   const photo=openingPhoto.getBoundingClientRect();
+   const imageScale=Math.max(photo.width/1672,photo.height/941);
+   // Pendant center in the original photo, adjusted for object-fit:cover.
+   const pendantX=photo.left+(photo.width-1672*imageScale)*.54+895*imageScale;
+   const pendantY=photo.top+scrollY+(photo.height-941*imageScale)*.5+731*imageScale;
+   const emerge=smooth(.055,.5,state);
+   centerX=interpolate(pendantX,centerX,emerge);
+   centerY=interpolate(pendantY,centerY,emerge);
+   visualHeight=interpolate(115*imageScale,visualHeight,emerge);
+  }
+ }
  const scale=visualHeight/end.height;
  layer.style.visibility=restoring?'hidden':'visible';
  layer.style.left='0px';layer.style.top='0px';
  layer.style.width=`${end.width}px`;layer.style.height=`${end.height}px`;
  layer.style.transform=`translate3d(${centerX-end.width/2}px,${centerY-end.height/2}px,0) scale(${scale})`;
- layer.style.opacity=(photoReady&&state>6&&workflow.getBoundingClientRect().bottom<=0)||scrollY>specsTop()+vh*.65?'0':'1';
+ layer.style.opacity=(photoReady&&state>6&&workflow.getBoundingClientRect().bottom<=0)||scrollY>specsTop()+vh*.65?'0':String(modelOpacity);
  const spin=Math.max(0,Math.min(2,state-1));
  angle=interpolate(interpolate(0,-8,t)-35*Math.sin(spin*Math.PI),0,operation);
  const pointerGain=smooth(.9,1,state)*(photoReady?1-smooth(5.8,6,state):1);
