@@ -173,7 +173,7 @@ function paint(state){
  heroCopy.style.opacity=String(1-smooth(.02,.85,t));
  // Entry masks never animate during exit: fade the complete paragraph block.
  heroCopy.querySelectorAll('.line-text').forEach(line=>{if(t>.001)line.getAnimations().forEach(animation=>animation.cancel());line.style.opacity='1';line.style.transform='none'});
- heroPicker.style.opacity=String(1-smooth(.01,.4,state));heroPicker.inert=state>.15;
+ heroPicker.style.opacity=String(smooth(-.25,0,state)*(1-smooth(.01,.4,state)));heroPicker.inert=state<0||state>.15;
  if(photoReady){const zoom=smooth(7,8,state),initialWidth=vw*(mobile?.88:.5);lifestylePhoto.style.width=`${interpolate(initialWidth,vw,zoom)}px`;lifestylePhoto.style.height=`${interpolate(initialWidth*941/1670,vh,zoom)}px`;lifestylePhoto.style.borderRadius=`${interpolate(24,0,zoom)}px`;const fullscreen=state>=7.999;if(fullscreen!==lifestyleFullscreen){lifestyleFullscreen=fullscreen;updateLifestylePlayback()}const shade=smooth(8,9,state),text=smooth(7.75,8,state);lifestylePhoto.style.setProperty('--photo-dim',String(shade*.18));lifestylePin.style.setProperty('--slide-width',lifestylePhoto.style.width);
  const activeCopy=lifestyleCopies[activeSlide];
  if(activeCopy){activeCopy.style.opacity=String(text);activeCopy.setAttribute('aria-hidden',String(text<.5))}lifestylePhoto.querySelector('.photo-scroll-hint').style.opacity=String(smooth(7.75,8,state))}
@@ -210,7 +210,7 @@ function updateSteps(state){
  document.querySelectorAll('[data-goto-step]').forEach(button=>{const active=Number(button.dataset.gotoStep)===selectedStep;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
 }
 function sceneScroll(state){const start=openingHeight();if(state<0)return start*(1+state);const before=start+(storyTop()-start)*Math.min(1,state)+(workflowTop()-storyTop())*smooth(3,4,state);return before+(photoReady?(lifestyleTop()-workflowTop())*smooth(6,7,state)+sceneHeight()*(smooth(7,8,state)+smooth(8,9,state)):(specsTop()-workflowTop())*smooth(6,7,state))}
-let menuTransition=null,specsJumpTarget=null,photoGestureUntil=0;
+let menuTransition=null,specsJumpTarget=null,photoGestureUntil=0,openingGestureUntil=0;
 function schedulePaint(){needsPaint=true;if(!raf)raf=requestAnimationFrame(tick)}
 function tick(now){
  const dt=lastFrame?Math.min(40,now-lastFrame):16;lastFrame=now;
@@ -242,6 +242,10 @@ function jumpToSpecs(){specsJumpTarget=showcaseScrollTop();window.scrollTo({top:
 function consume(delta){
  const end=controlledScrollEnd(),y=scrollY;
  const now=performance.now();
+ if(delta>0&&targetState===0&&(frameState<0||now<openingGestureUntil)){
+  openingGestureUntil=now+220;
+  return true;
+ }
  if(delta>0&&now<photoGestureUntil){photoGestureUntil=now+180;return true}
  if(photoReady&&delta>0&&frameState>=7.999&&frameState<9&&targetState<9){navigateTo(9);photoGestureUntil=now+180;return true}
  if(photoReady&&delta>0&&menuTransition&&targetState===9&&frameState>=8){photoGestureUntil=now+180;return true}
@@ -252,11 +256,15 @@ function consume(delta){
  if(y>end+25){if(delta<0){goTo(sceneEnd());return true}return false}
  if((targetState===firstScene&&frameState===firstScene&&delta<0)||(targetState===sceneEnd()&&frameState===sceneEnd()&&delta>0))return false;
  const next=targetState+Math.max(-.14,Math.min(.14,delta/900));
- goTo(targetState<0&&next>0?0:next);return true;
+ if(targetState<0&&next>=0){
+  openingGestureUntil=now+220;
+  goTo(0);
+ }else goTo(next);
+ return true;
 }
 function isDialogControl(e){return e.target instanceof Element && Boolean(e.target.closest('#CybotCookiebotDialog,#CookiebotWidget,#preise'))}
 window.addEventListener('wheel',e=>{if(isDialogControl(e)||e.ctrlKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY)||document.body.classList.contains('is-loading'))return;const units=e.deltaMode===1?16:e.deltaMode===2?innerHeight:1;if(consume(e.deltaY*units))e.preventDefault()},{passive:false});
-window.addEventListener('keydown',e=>{if(isDialogControl(e)||e.target.closest('input,textarea,select,button,summary'))return;const direction=['ArrowDown','PageDown',' '].includes(e.key)?1:['ArrowUp','PageUp'].includes(e.key)?-1:0;if(direction>0&&photoReady&&frameState===sceneEnd()&&scrollY>=controlledScrollEnd()-2&&scrollY<showcaseScrollTop()-2){e.preventDefault();jumpToSpecs();return}if(direction&&scrollY<=controlledScrollEnd()+2&&!(direction>0&&frameState===sceneEnd()&&targetState===sceneEnd())){e.preventDefault();goTo(direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1)}});
+window.addEventListener('keydown',e=>{if(isDialogControl(e)||e.target.closest('input,textarea,select,button,summary'))return;const direction=['ArrowDown','PageDown',' '].includes(e.key)?1:['ArrowUp','PageUp'].includes(e.key)?-1:0;if(direction>0&&targetState===0&&(frameState<0||e.repeat)){e.preventDefault();return}if(direction>0&&photoReady&&frameState===sceneEnd()&&scrollY>=controlledScrollEnd()-2&&scrollY<showcaseScrollTop()-2){e.preventDefault();jumpToSpecs();return}if(direction&&scrollY<=controlledScrollEnd()+2&&!(direction>0&&frameState===sceneEnd()&&targetState===sceneEnd())){e.preventDefault();goTo(direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1)}});
 window.addEventListener('touchstart',e=>{touchY=isDialogControl(e)?null:e.touches[0].clientY;
  slideTouch=e.touches.length===1&&e.target.closest('.lifestyle-photo')?{x:e.touches[0].clientX,y:e.touches[0].clientY,axis:null}:null;
  photoGestureUntil=0},{passive:true});window.addEventListener('touchmove',e=>{if(touchY===null)return;
