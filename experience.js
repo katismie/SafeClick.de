@@ -93,7 +93,10 @@ heroModel.removeAttribute('camera-controls');heroModel.setAttribute('disable-zoo
 heroModel.interpolationDecay=0;
 heroModel.setAttribute('min-camera-orbit','auto auto 0.01m');heroModel.setAttribute('max-camera-orbit','auto auto 1m');
 heroModel.addEventListener('load',()=>{heroModel.animationName='Device workflow';heroModel.pause();heroModel.currentTime=0});
-let phase=0,angle=0,touchY=null,frameState=0,targetState=0,raf=0,lastFrame=0,lastWrite=0,mouseX=0,mouseY=0,mouseTargetX=0,mouseTargetY=0,needsPaint=true,lastSceneScroll=null,heroEntrance=null;
+const openingPhoto=document.querySelector('.opening-photo');
+const firstScene=openingPhoto?-1:0;
+function openingHeight(){return openingPhoto?.offsetHeight??0}
+let phase=0,angle=0,touchY=null,frameState=firstScene,targetState=firstScene,raf=0,lastFrame=0,lastWrite=0,mouseX=0,mouseY=0,mouseTargetX=0,mouseTargetY=0,needsPaint=true,lastSceneScroll=null,heroEntrance=null;
 const motionReduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let savedView=null;
 try{const value=JSON.parse(sessionStorage.getItem('safeclick-view')||'null');if(value?.path===location.pathname&&Number.isFinite(value.y)&&Number.isFinite(value.state))savedView=value}catch{}
@@ -102,14 +105,14 @@ if('scrollRestoration' in history)history.scrollRestoration='manual';
 window.addEventListener('pagehide',()=>{if(restoring)return;try{sessionStorage.setItem('safeclick-view',JSON.stringify({path:location.pathname,y:scrollY,state:frameState}))}catch{}});
 
 
-function sceneHeight(){return document.querySelector('.screen').clientHeight}
+function sceneHeight(){return document.querySelector('.screen').clientHeight-openingHeight()}
 function storyTop(){return story.getBoundingClientRect().top+scrollY}
 function interpolate(a,b,t){return a+(b-a)*t}
-const openingPhoto=document.querySelector('.opening-photo');
+
 function paint(state){
  if(state>0&&heroEntrance){heroEntrance.cancel();heroEntrance=null}
  frameState=state;const t=Math.max(0,Math.min(1,state)),rect=slot.getBoundingClientRect(),vh=sceneHeight(),vw=document.documentElement.clientWidth;
- const heroY=rect.top+scrollY;const mobile=vw<=760;
+ const heroY=rect.top+scrollY-openingHeight();const mobile=vw<=760;
  const operation=smooth(3,4,state);
  const workflowExit=photoReady&&state>6?Math.min(0,workflowTop()-scrollY):0;
  const end={left:mobile?vw*.025:vw*.12,top:mobile?interpolate(vh*.09,vh*.2,operation):interpolate(vh*.12,vh*.16,operation),width:mobile?vw*.95:vw*.76,height:mobile?vh*.43:vh*.76};
@@ -119,15 +122,16 @@ function paint(state){
  let centerY=interpolate(heroY+Math.max(80,rect.height-86)/2,end.top+end.height/2,t)+workflowExit;
  let modelOpacity=1;
  if(openingPhoto){
-  openingPhoto.style.opacity=String(1-smooth(.03,.4,state));
-  modelOpacity=smooth(.015,.17,state);
-  if(state<.5&&!motionReduced){
+  const reveal=state+1;
+  openingPhoto.style.opacity=String(1-smooth(.15,.85,reveal));
+  modelOpacity=smooth(.08,.45,reveal);
+  if(state<0&&!motionReduced){
    const photo=openingPhoto.getBoundingClientRect();
    const imageScale=Math.max(photo.width/1672,photo.height/941);
    // Pendant center in the original photo, adjusted for object-fit:cover.
    const pendantX=photo.left+(photo.width-1672*imageScale)*.54+895*imageScale;
-   const pendantY=photo.top+scrollY+(photo.height-941*imageScale)*.5+731*imageScale;
-   const emerge=smooth(.055,.5,state);
+   const pendantY=photo.top+(photo.height-941*imageScale)*.5+731*imageScale;
+   const emerge=smooth(.15,1,reveal);
    centerX=interpolate(pendantX,centerX,emerge);
    centerY=interpolate(pendantY,centerY,emerge);
    visualHeight=interpolate(115*imageScale,visualHeight,emerge);
@@ -143,15 +147,16 @@ function paint(state){
  angle=interpolate(interpolate(0,-8,t)-35*Math.sin(spin*Math.PI),0,operation);
  const pointerGain=smooth(.9,1,state)*(photoReady?1-smooth(5.8,6,state):1);
  const tilt=interpolate(interpolate(85,82,t)-16*Math.sin(spin*Math.PI*2),85,operation)+mouseY*2*pointerGain;
- const roll=interpolate(interpolate(40,-12,t)+180*spin,360,operation);
+ let roll=interpolate(interpolate(40,-12,t)+180*spin,360,operation);
+ if(state<0&&!motionReduced)roll=interpolate(-85,roll,smooth(.15,1,state+1));
  heroModel.orientation=`${-roll}deg ${28*Math.sin(spin*Math.PI)*(1-operation)}deg 0deg`;
  heroModel.shadowIntensity=0;
  if(heroModel.loaded){const time=photoReady&&state>=6?3:Math.max(0,Math.min(4,state-3));if(Math.abs(heroModel.currentTime-time)>.00001)heroModel.currentTime=time;}
  // Neutral-model fit in meters preserves the previous size without auto-framing each pose.
  const radius=.179346594*interpolate(.75,1.05,t);heroModel.cameraOrbit=`${angle+mouseX*3*pointerGain}deg ${tilt}deg ${radius}m`;heroModel.style.transform=`translate(${mouseX*6*pointerGain}px,${mouseY*4*pointerGain}px) rotate(0deg)`;
  const titleRect=title.getBoundingClientRect(),target=brand.getBoundingClientRect();const size=parseFloat(getComputedStyle(title).fontSize),brandSize=parseFloat(getComputedStyle(brand).fontSize);
- morph.style.left=`${interpolate(titleRect.left,target.left,t)}px`;morph.style.top=`${interpolate(titleRect.top+scrollY,target.top,t)}px`;morph.style.fontSize=`${interpolate(size,brandSize,t)}px`;morph.style.letterSpacing=`${interpolate(-.065*size,-1.2,t)}px`;
- morph.hidden=state===0;title.style.opacity=state===0?'1':'0';heading.querySelector('.eyebrow').style.opacity=String(1-t);
+ morph.style.left=`${interpolate(titleRect.left,target.left,t)}px`;morph.style.top=`${interpolate(titleRect.top+scrollY-openingHeight(),target.top,t)}px`;morph.style.fontSize=`${interpolate(size,brandSize,t)}px`;morph.style.letterSpacing=`${interpolate(-.065*size,-1.2,t)}px`;
+ morph.hidden=state<=0;title.style.opacity=state<=0?'1':'0';heading.querySelector('.eyebrow').style.opacity=String(1-t);
  heroCopy.style.opacity=String(1-smooth(.02,.85,t));
  // Entry masks never animate during exit: fade the complete paragraph block.
  heroCopy.querySelectorAll('.line-text').forEach(line=>{if(t>.001)line.getAnimations().forEach(animation=>animation.cancel());line.style.opacity='1';line.style.transform='none'});
@@ -191,7 +196,7 @@ function updateSteps(state){
  workflow.dataset.step=String(selectedStep);
  document.querySelectorAll('[data-goto-step]').forEach(button=>{const active=Number(button.dataset.gotoStep)===selectedStep;button.classList.toggle('active',active);button.setAttribute('aria-pressed',String(active))});
 }
-function sceneScroll(state){const before=storyTop()*Math.min(1,state)+(workflowTop()-storyTop())*smooth(3,4,state);return before+(photoReady?(lifestyleTop()-workflowTop())*smooth(6,7,state)+sceneHeight()*(smooth(7,8,state)+smooth(8,9,state)):(specsTop()-workflowTop())*smooth(6,7,state))}
+function sceneScroll(state){const start=openingHeight();if(state<0)return start*(1+state);const before=start+(storyTop()-start)*Math.min(1,state)+(workflowTop()-storyTop())*smooth(3,4,state);return before+(photoReady?(lifestyleTop()-workflowTop())*smooth(6,7,state)+sceneHeight()*(smooth(7,8,state)+smooth(8,9,state)):(specsTop()-workflowTop())*smooth(6,7,state))}
 let menuTransition=null,specsJumpTarget=null,photoGestureUntil=0;
 function schedulePaint(){needsPaint=true;if(!raf)raf=requestAnimationFrame(tick)}
 function tick(now){
@@ -216,10 +221,10 @@ function tick(now){
  if(menuTransition||Math.abs(targetState-frameState)>.0001||Math.abs(mouseTargetX-mouseX)>.001||Math.abs(mouseTargetY-mouseY)>.001||needsPaint)raf=requestAnimationFrame(tick);
  else{raf=0;lastFrame=0}
 }
-function goTo(value){if(specsJumpTarget!==null){specsJumpTarget=null;window.scrollTo({top:scrollY,behavior:'instant'})}menuTransition=null;targetState=Math.max(0,Math.min(sceneEnd(),value));schedulePaint()}
+function goTo(value){if(specsJumpTarget!==null){specsJumpTarget=null;window.scrollTo({top:scrollY,behavior:'instant'})}menuTransition=null;targetState=Math.max(firstScene,Math.min(sceneEnd(),value));schedulePaint()}
 function navigateTo(value){photoGestureUntil=0;goTo(value);menuTransition={from:frameState,start:performance.now()}}
 function navigateToShowcase(){goTo(sceneEnd());menuTransition={from:frameState,start:performance.now(),scrollFrom:scrollY,scrollTo:showcaseScrollTop()}}
-paint(0);
+paint(firstScene);
 function jumpToSpecs(){specsJumpTarget=showcaseScrollTop();window.scrollTo({top:specsJumpTarget,behavior:motionReduced?'instant':'smooth'})}
 function consume(delta){
  const end=controlledScrollEnd(),y=scrollY;
@@ -232,8 +237,9 @@ function consume(delta){
  if(photoReady&&y>end+2)return false;
  if(y>end+innerHeight*.7)return false;
  if(y>end+25){if(delta<0){goTo(sceneEnd());return true}return false}
- if((targetState===0&&frameState===0&&delta<0)||(targetState===sceneEnd()&&frameState===sceneEnd()&&delta>0))return false;
- goTo(targetState+Math.max(-.14,Math.min(.14,delta/900)));return true;
+ if((targetState===firstScene&&frameState===firstScene&&delta<0)||(targetState===sceneEnd()&&frameState===sceneEnd()&&delta>0))return false;
+ const next=targetState+Math.max(-.14,Math.min(.14,delta/900));
+ goTo(targetState<0&&next>0?0:next);return true;
 }
 function isDialogControl(e){return e.target instanceof Element && Boolean(e.target.closest('#CybotCookiebotDialog,#CookiebotWidget,#preise'))}
 window.addEventListener('wheel',e=>{if(isDialogControl(e)||e.ctrlKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY)||document.body.classList.contains('is-loading'))return;const units=e.deltaMode===1?16:e.deltaMode===2?innerHeight:1;if(consume(e.deltaY*units))e.preventDefault()},{passive:false});
@@ -273,13 +279,13 @@ window.addEventListener('scroll',()=>{
  if(lastSceneScroll!==null&&Math.abs(scrollY-lastSceneScroll)<2)return;
  if(Math.abs(targetState-frameState)>.0001||performance.now()-lastWrite<120)return;
  const base=storyTop();
- if(scrollY<base*.25&&frameState>0)goTo(0);
+ if(scrollY<openingHeight()+Math.max(0,base-openingHeight())*.25&&frameState>0)goTo(0);
  else if(Math.abs(scrollY-controlledScrollEnd())<4&&frameState<sceneEnd())goTo(sceneEnd());
  else if(Math.abs(scrollY-workflowTop())<4&&frameState<4)goTo(4);
  else if(Math.abs(scrollY-base)<4&&frameState<1)goTo(1);
  else schedulePaint();
 },{passive:true});
-brand.addEventListener('click',e=>{e.preventDefault();navigateTo(0)});
+brand.addEventListener('click',e=>{e.preventDefault();navigateTo(firstScene)});
 document.querySelectorAll('[data-scene-target]').forEach(link=>link.addEventListener('click',e=>{e.preventDefault();navigateTo(Number(link.dataset.sceneTarget))}));
 heroModel.addEventListener('error',()=>{document.querySelector('.story-error').hidden=false});
 
