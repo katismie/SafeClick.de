@@ -94,8 +94,9 @@ heroModel.interpolationDecay=0;
 heroModel.setAttribute('min-camera-orbit','auto auto 0.01m');heroModel.setAttribute('max-camera-orbit','auto auto 1m');
 heroModel.addEventListener('load',()=>{heroModel.animationName='Device workflow';heroModel.pause();heroModel.currentTime=0});
 const openingPhoto=document.querySelector('.opening-photo');
+const openingStage=openingPhoto?.parentElement;
 const firstScene=openingPhoto?-1:0;
-function openingHeight(){return openingPhoto?.offsetHeight??0}
+function openingHeight(){return openingStage?.offsetHeight??0}
 let phase=0,angle=0,touchY=null,frameState=firstScene,targetState=firstScene,raf=0,lastFrame=0,lastWrite=0,mouseX=0,mouseY=0,mouseTargetX=0,mouseTargetY=0,needsPaint=true,lastSceneScroll=null,heroEntrance=null;
 const motionReduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let savedView=null;
@@ -123,18 +124,30 @@ function paint(state){
  let modelOpacity=1;
  if(openingPhoto){
   const reveal=state+1;
-  openingPhoto.style.opacity=String(1-smooth(.15,.85,reveal));
-  modelOpacity=smooth(.08,.45,reveal);
-  if(state<0&&!motionReduced){
-   const photo=openingPhoto.getBoundingClientRect();
-   const imageScale=Math.max(photo.width/1672,photo.height/941);
-   // Pendant center in the original photo, adjusted for object-fit:cover.
-   const pendantX=photo.left+(photo.width-1672*imageScale)*.54+895*imageScale;
-   const pendantY=photo.top+(photo.height-941*imageScale)*.5+731*imageScale;
-   const emerge=smooth(.15,1,reveal);
-   centerX=interpolate(pendantX,centerX,emerge);
-   centerY=interpolate(pendantY,centerY,emerge);
-   visualHeight=interpolate(115*imageScale,visualHeight,emerge);
+  const transitioning=state<0;
+  openingStage.classList.toggle('is-transitioning',transitioning);
+  openingPhoto.style.visibility=transitioning?'visible':'hidden';
+  openingPhoto.style.opacity=String(1-smooth(.36,.86,reveal));
+  modelOpacity=smooth(.32,.71,reveal);
+  layer.style.zIndex=transitioning?'2':'';
+  if(transitioning&&!motionReduced){
+   // Match the pendant's center after cover-cropping, before applying zoom.
+   const width=openingPhoto.clientWidth,height=openingPhoto.clientHeight;
+   const imageScale=Math.max(width/1672,height/941);
+   const pendantX=(width-1672*imageScale)*.54+895*imageScale;
+   const pendantY=(height-941*imageScale)*.5+731*imageScale;
+   const approach=smooth(0,.68,reveal);
+   const zoom=interpolate(1,2.75,approach);
+   const x=interpolate(pendantX,centerX,approach);
+   const y=interpolate(pendantY,centerY,approach);
+   openingPhoto.style.transformOrigin=`${pendantX}px ${pendantY}px`;
+   openingPhoto.style.transform=`translate3d(${x-pendantX}px,${y-pendantY}px,0) scale(${zoom})`;
+   const emerge=smooth(.43,1,reveal);
+   centerX=interpolate(x,centerX,emerge);
+   centerY=interpolate(y,centerY,emerge);
+   visualHeight=interpolate(115*imageScale*zoom,visualHeight,emerge);
+  }else{
+   openingPhoto.style.transform='';
   }
  }
  const scale=visualHeight/end.height;
@@ -148,7 +161,7 @@ function paint(state){
  const pointerGain=smooth(.9,1,state)*(photoReady?1-smooth(5.8,6,state):1);
  const tilt=interpolate(interpolate(85,82,t)-16*Math.sin(spin*Math.PI*2),85,operation)+mouseY*2*pointerGain;
  let roll=interpolate(interpolate(40,-12,t)+180*spin,360,operation);
- if(state<0&&!motionReduced)roll=interpolate(-85,roll,smooth(.15,1,state+1));
+ if(state<0&&!motionReduced)roll=interpolate(85,roll,smooth(.38,1,state+1));
  heroModel.orientation=`${-roll}deg ${28*Math.sin(spin*Math.PI)*(1-operation)}deg 0deg`;
  heroModel.shadowIntensity=0;
  if(heroModel.loaded){const time=photoReady&&state>=6?3:Math.max(0,Math.min(4,state-3));if(Math.abs(heroModel.currentTime-time)>.00001)heroModel.currentTime=time;}
