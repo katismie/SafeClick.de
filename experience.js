@@ -269,20 +269,39 @@ function consume(delta){
 function isDialogControl(e){return e.target instanceof Element && Boolean(e.target.closest('#CybotCookiebotDialog,#CookiebotWidget,#preise'))}
 window.addEventListener('wheel',e=>{if(isDialogControl(e)||e.ctrlKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY)||document.body.classList.contains('is-loading'))return;const units=e.deltaMode===1?16:e.deltaMode===2?innerHeight:1;if(consume(e.deltaY*units))e.preventDefault()},{passive:false});
 window.addEventListener('keydown',e=>{if(isDialogControl(e)||e.target.closest('input,textarea,select,button,summary'))return;const direction=['ArrowDown','PageDown',' '].includes(e.key)?1:['ArrowUp','PageUp'].includes(e.key)?-1:0;if(direction>0&&targetState===0&&(frameState<0||e.repeat)){e.preventDefault();return}if(direction>0&&photoReady&&frameState===sceneEnd()&&scrollY>=controlledScrollEnd()-2&&scrollY<showcaseScrollTop()-2){e.preventDefault();jumpToSpecs();return}if(direction&&scrollY<=controlledScrollEnd()+2&&!(direction>0&&frameState===sceneEnd()&&targetState===sceneEnd())){e.preventDefault();goTo(direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1)}});
-window.addEventListener('touchstart',e=>{
- slideTouch=!isDialogControl(e)&&e.touches.length===1&&e.target.closest('.lifestyle-photo')?{x:e.touches[0].clientX,y:e.touches[0].clientY,axis:null}:null;
- photoGestureUntil=0},{passive:true});window.addEventListener('touchmove',e=>{if(e.touches.length!==1){slideTouch=null;return}
- if(slideTouch){
-  const dx=e.touches[0].clientX-slideTouch.x,dy=e.touches[0].clientY-slideTouch.y;
-  if(!slideTouch.axis){
-   if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;
-   slideTouch.axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
-  }
-  if(slideTouch.axis==='x'){if(e.cancelable)e.preventDefault();return}
+window.addEventListener('touchstart',event=>{
+ if(isDialogControl(event)||event.touches.length!==1){slideTouch=null;return}
+ const touch=event.touches[0];
+ slideTouch={x:touch.clientX,y:touch.clientY,axis:null,handled:false,
+  onPhoto:Boolean(event.target.closest('.lifestyle-photo'))};
+},{passive:true});
+window.addEventListener('touchmove',event=>{
+ if(!slideTouch||event.touches.length!==1){slideTouch=null;return}
+ const dx=event.touches[0].clientX-slideTouch.x;
+ const dy=event.touches[0].clientY-slideTouch.y;
+ if(!slideTouch.axis){
+  if(Math.max(Math.abs(dx),Math.abs(dy))<8)return;
+  slideTouch.axis=Math.abs(dx)>Math.abs(dy)?'x':'y';
  }
- },{passive:false});window.addEventListener('touchend',e=>{
- if(slideTouch?.axis==='x'){
-  const dx=e.changedTouches[0].clientX-slideTouch.x;
+ if(slideTouch.axis==='x'){
+  if(slideTouch.onPhoto&&event.cancelable)event.preventDefault();
+  return;
+ }
+ if(slideTouch.handled){if(event.cancelable)event.preventDefault();return}
+ const direction=Math.sign(-dy);
+ const end=sceneEnd();
+ const inside=scrollY<=controlledScrollEnd()+2;
+ if(!inside||!direction||(direction<0&&targetState<=firstScene)||
+   (direction>0&&targetState>=end)||!event.cancelable)return;
+ event.preventDefault();
+ if(Math.abs(dy)<24)return;
+ slideTouch.handled=true;
+ const next=direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1;
+ navigateTo(next);
+},{passive:false});
+window.addEventListener('touchend',event=>{
+ if(slideTouch?.axis==='x'&&slideTouch.onPhoto){
+  const dx=event.changedTouches[0].clientX-slideTouch.x;
   if(Math.abs(dx)>35)moveLifestyleSlide(-Math.sign(dx));
  }
  slideTouch=null;
