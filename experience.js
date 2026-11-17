@@ -19,11 +19,41 @@ const lifestylePin=lifestyle.querySelector('.lifestyle-pin');
 const lifestyleCopies=[...lifestyle.querySelectorAll('.lifestyle-copy')];
 const slidePhotos=[...lifestyle.querySelectorAll('.lifestyle-frames img')];
 const slideButtons=[...lifestyle.querySelectorAll('[data-slide-step]')];
+const slideCount=lifestyle.querySelector('.lifestyle-count');
+const autoplayButton=lifestyle.querySelector('.lifestyle-autoplay');
 let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
+let carouselVisible=false, autoplayTimer, autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function updateCarouselStatus(){
+ slideCount.textContent=`${activeSlide+1} / ${slidePhotos.length}`;
+ autoplayButton.textContent=autoplayEnabled?'Ⅱ':'▶';
+ autoplayButton.setAttribute('aria-label',autoplayEnabled?'Automatischen Bildwechsel pausieren':'Automatischen Bildwechsel starten');
+}
+function scheduleAutoplay(){
+ clearTimeout(autoplayTimer);
+ if(!autoplayEnabled||!carouselVisible||document.hidden||lifestylePin.matches(':hover, :focus-within'))return;
+ autoplayTimer=setTimeout(()=>moveLifestyleSlide(activeSlide===slidePhotos.length-1?-activeSlide:1),6000);
+}
+autoplayButton.addEventListener('click',()=>{
+ autoplayEnabled=!autoplayEnabled;
+ updateCarouselStatus();
+ scheduleAutoplay();
+});
+for(const event of ['pointerenter','pointerleave','focusin','focusout']){
+ lifestylePin.addEventListener(event,()=>queueMicrotask(scheduleAutoplay));
+}
+document.addEventListener('visibilitychange',scheduleAutoplay);
+new IntersectionObserver(([entry])=>{
+ carouselVisible=entry.isIntersecting;
+ scheduleAutoplay();
+},{threshold:.6}).observe(lifestylePin);
+updateCarouselStatus();
 function moveLifestyleSlide(step){
  const next=Math.max(0,Math.min(slidePhotos.length-1,activeSlide+step));
  if(next===activeSlide)return;
  activeSlide=next;
+ updateCarouselStatus();
+ scheduleAutoplay();
  lifestylePhoto.dataset.slide=String(next);
  lifestyleCopies.forEach((copy,index)=>{copy.hidden=index!==next});
  slidePhotos.forEach((photo,index)=>photo.setAttribute('aria-hidden',String(index!==next)));
@@ -143,6 +173,7 @@ function paint(state){
  heroCopy.querySelectorAll('.line-text').forEach(line=>{if(t>.001)line.getAnimations().forEach(animation=>animation.cancel());line.style.opacity='1';line.style.transform='none'});
  heroPicker.style.opacity=String(smooth(-.25,0,state)*(1-smooth(.01,.4,state)));heroPicker.inert=state<0||state>.15;
  if(photoReady){const zoom=smooth(7,8,state),initialWidth=vw*(mobile?.88:.5);lifestylePhoto.style.width=`${interpolate(initialWidth,vw,zoom)}px`;lifestylePhoto.style.height=`${interpolate(initialWidth*941/1670,vh,zoom)}px`;lifestylePhoto.style.borderRadius=`${interpolate(24,0,zoom)}px`;const shade=smooth(8,9,state),text=smooth(7.75,8,state);lifestylePhoto.style.setProperty('--photo-dim',String(shade*.18));lifestylePin.style.setProperty('--slide-width',lifestylePhoto.style.width);
+ lifestylePin.style.setProperty('--slide-height',lifestylePhoto.style.height);
  const activeCopy=lifestyleCopies[activeSlide];
  if(activeCopy){activeCopy.style.opacity=String(text);activeCopy.setAttribute('aria-hidden',String(text<.5))}lifestylePhoto.querySelector('.photo-scroll-hint').style.opacity=String(smooth(7.75,8,state))}
  updateCards(state);
@@ -288,7 +319,7 @@ if(!motionReduced&&matchMedia('(pointer:fine)').matches){
  document.documentElement.addEventListener('pointerleave',()=>{mouseTargetX=mouseTargetY=0;schedulePaint()});
 }
 // Duplicate visual lettering only; controls retain one accessible label.
-document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not([data-slide-step]),summary').forEach(control=>{
+document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not(.lifestyle-autoplay):not([data-slide-step]),summary').forEach(control=>{
  const label=control.textContent.trim();if(!label)return;
  if(!control.hasAttribute('aria-label'))control.setAttribute('aria-label',label);
  const wrap=document.createElement('span');wrap.className='roll-label';wrap.setAttribute('aria-hidden','true');
