@@ -287,3 +287,5 @@ footer.site-footer{padding-top:40px}
 .price-benefits{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}
 .price-benefits li{padding-left:24px;position:relative}
 .price-benefits li::before{content:'✓';position:absolute;left:0;color:#326534}
+
+.lifestyle-frames > img:first-child{object-position:52% 72%}
