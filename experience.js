@@ -37,11 +37,8 @@ function updateCarouselStatus(){
 }
 function scheduleAutoplay(){
  clearTimeout(autoplayTimer);
- if(!autoplayEnabled||!carouselVisible||document.hidden||lifestylePin.matches(':hover, :focus-within'))return;
+ if(!autoplayEnabled||!carouselVisible||document.hidden)return;
  autoplayTimer=setTimeout(()=>moveLifestyleSlide(activeSlide===slidePhotos.length-1?-activeSlide:1),4000);
-}
-for(const event of ['pointerenter','pointerleave','focusin','focusout']){
- lifestylePin.addEventListener(event,()=>queueMicrotask(scheduleAutoplay));
 }
 document.addEventListener('visibilitychange',scheduleAutoplay);
 new IntersectionObserver(([entry])=>{
