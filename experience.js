@@ -88,7 +88,8 @@ const openingPhoto=document.querySelector('.opening-photo');
 const openingStage=openingPhoto?.parentElement;
 const firstScene=openingPhoto?-1:0;
 function openingHeight(){return openingStage?.offsetHeight??0}
-let phase=0,angle=0,touchY=null,frameState=firstScene,targetState=firstScene,raf=0,lastFrame=0,lastWrite=0,mouseX=0,mouseY=0,mouseTargetX=0,mouseTargetY=0,needsPaint=true,lastSceneScroll=null,heroEntrance=null;
+let phase=0,angle=0,frameState=firstScene,targetState=firstScene,raf=0,lastFrame=0,lastWrite=0,mouseX=0,mouseY=0,mouseTargetX=0,mouseTargetY=0,needsPaint=true,lastSceneScroll=null,heroEntrance=null;
+const nativeTouchScroll=matchMedia('(pointer: coarse)');
 const motionReduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let savedView=null;
 try{const value=JSON.parse(sessionStorage.getItem('safeclick-view')||'null');if(value?.path===location.pathname&&Number.isFinite(value.y)&&Number.isFinite(value.state))savedView=value}catch{}
@@ -268,9 +269,9 @@ function consume(delta){
 function isDialogControl(e){return e.target instanceof Element && Boolean(e.target.closest('#CybotCookiebotDialog,#CookiebotWidget,#preise'))}
 window.addEventListener('wheel',e=>{if(isDialogControl(e)||e.ctrlKey||!e.deltaY||Math.abs(e.deltaX)>Math.abs(e.deltaY)||document.body.classList.contains('is-loading'))return;const units=e.deltaMode===1?16:e.deltaMode===2?innerHeight:1;if(consume(e.deltaY*units))e.preventDefault()},{passive:false});
 window.addEventListener('keydown',e=>{if(isDialogControl(e)||e.target.closest('input,textarea,select,button,summary'))return;const direction=['ArrowDown','PageDown',' '].includes(e.key)?1:['ArrowUp','PageUp'].includes(e.key)?-1:0;if(direction>0&&targetState===0&&(frameState<0||e.repeat)){e.preventDefault();return}if(direction>0&&photoReady&&frameState===sceneEnd()&&scrollY>=controlledScrollEnd()-2&&scrollY<showcaseScrollTop()-2){e.preventDefault();jumpToSpecs();return}if(direction&&scrollY<=controlledScrollEnd()+2&&!(direction>0&&frameState===sceneEnd()&&targetState===sceneEnd())){e.preventDefault();goTo(direction>0?Math.floor(targetState+.01)+1:Math.ceil(targetState-.01)-1)}});
-window.addEventListener('touchstart',e=>{touchY=isDialogControl(e)?null:e.touches[0].clientY;
- slideTouch=e.touches.length===1&&e.target.closest('.lifestyle-photo')?{x:e.touches[0].clientX,y:e.touches[0].clientY,axis:null}:null;
- photoGestureUntil=0},{passive:true});window.addEventListener('touchmove',e=>{if(touchY===null)return;
+window.addEventListener('touchstart',e=>{
+ slideTouch=!isDialogControl(e)&&e.touches.length===1&&e.target.closest('.lifestyle-photo')?{x:e.touches[0].clientX,y:e.touches[0].clientY,axis:null}:null;
+ photoGestureUntil=0},{passive:true});window.addEventListener('touchmove',e=>{if(e.touches.length!==1){slideTouch=null;return}
  if(slideTouch){
   const dx=e.touches[0].clientX-slideTouch.x,dy=e.touches[0].clientY-slideTouch.y;
   if(!slideTouch.axis){
@@ -279,22 +280,21 @@ window.addEventListener('touchstart',e=>{touchY=isDialogControl(e)?null:e.touche
   }
   if(slideTouch.axis==='x'){if(e.cancelable)e.preventDefault();return}
  }
- const next=e.touches[0].clientY,d=touchY-next;touchY=next;if(consume(d*2))e.preventDefault()},{passive:false});window.addEventListener('touchend',e=>{
+ },{passive:false});window.addEventListener('touchend',e=>{
  if(slideTouch?.axis==='x'){
   const dx=e.changedTouches[0].clientX-slideTouch.x;
   if(Math.abs(dx)>35)moveLifestyleSlide(-Math.sign(dx));
  }
  slideTouch=null;
- touchY=null;
 },{passive:true});
-window.addEventListener('touchcancel',()=>{slideTouch=null;touchY=null},{passive:true});
+window.addEventListener('touchcancel',()=>{slideTouch=null},{passive:true});
 let sceneEndBeforeResize=controlledScrollEnd(),layoutWidth=innerWidth,layoutHeight=sceneHeight();
 window.addEventListener('resize',()=>{
  const width=document.documentElement.clientWidth,height=sceneHeight();
  if(width===layoutWidth&&Math.abs(height-layoutHeight)<2)return;
  layoutWidth=width;layoutHeight=height;
  const inScene=scrollY<=sceneEndBeforeResize+32;sceneEndBeforeResize=controlledScrollEnd();
- if(inScene){const top=sceneScroll(frameState);lastSceneScroll=top;lastWrite=performance.now();window.scrollTo({top,behavior:'instant'})}
+ if(inScene&&!nativeTouchScroll.matches){const top=sceneScroll(frameState);lastSceneScroll=top;lastWrite=performance.now();window.scrollTo({top,behavior:'instant'})}
  schedulePaint();
 });new ResizeObserver(schedulePaint).observe(slot);
 window.addEventListener('scroll',()=>{
@@ -302,6 +302,24 @@ window.addEventListener('scroll',()=>{
  if(specsJumpTarget!==null&&Math.abs(scrollY-specsJumpTarget)<2)specsJumpTarget=null;
  if(lastSceneScroll!==null&&Math.abs(scrollY-lastSceneScroll)<2)return;
  if(Math.abs(targetState-frameState)>.0001||performance.now()-lastWrite<120)return;
+ if(nativeTouchScroll.matches){
+  const top=scrollY;
+  let low=firstScene,high=sceneEnd();
+  if(top<=1)high=low;
+  else if(top>=controlledScrollEnd()-1)low=high;
+  else if(Math.abs(top-openingHeight())<=1)low=high=0;
+  else{
+   // Follow native scrolling without writing back to the scroll position.
+   for(let i=0;i<16;i++){
+    const mid=(low+high)/2;
+    if(sceneScroll(mid)<top)low=mid;
+    else high=mid;
+   }
+  }
+  targetState=frameState=(low+high)/2;
+  schedulePaint();
+  return;
+ }
  const base=storyTop();
  if(scrollY<openingHeight()+Math.max(0,base-openingHeight())*.25&&frameState>0)goTo(0);
  else if(Math.abs(scrollY-controlledScrollEnd())<4&&frameState<sceneEnd())goTo(sceneEnd());
