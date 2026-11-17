@@ -20,7 +20,7 @@ const lifestyleCopies=[...lifestyle.querySelectorAll('.lifestyle-copy')];
 const slidePhotos=[...lifestyle.querySelectorAll('.lifestyle-frames img')];
 const slideButtons=[...lifestyle.querySelectorAll('[data-slide-step]')];
 const slideCount=lifestyle.querySelector('.lifestyle-count');
-let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
+let activeSlide=0, slideTouch=null, lastHorizontalWheel=-Infinity;
 let carouselVisible=false, autoplayTimer;
 const autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -72,10 +72,10 @@ lifestylePin.addEventListener('keydown',event=>{
 lifestylePhoto.addEventListener('wheel',event=>{
  if(event.ctrlKey||Math.abs(event.deltaX)<=Math.abs(event.deltaY))return;
  if(event.cancelable)event.preventDefault();
- if(performance.now()-lastHorizontalWheel>350){
-  moveLifestyleSlide(Math.sign(event.deltaX));
-  lastHorizontalWheel=performance.now();
- }
+ const now=performance.now();
+ const startsGesture=now-lastHorizontalWheel>180;
+ lastHorizontalWheel=now;
+ if(startsGesture)moveLifestyleSlide(Math.sign(event.deltaX));
 },{passive:false});
 const photoReady=lifestyle.querySelector('img').hasAttribute('src');lifestyle.hidden=!photoReady;
 function lifestyleTop(){return lifestyle.getBoundingClientRect().top+scrollY}
