@@ -121,7 +121,13 @@ function paint(state){
   const transitioning=state<0;
   openingStage.classList.toggle('is-transitioning',transitioning);
   openingPhoto.style.visibility=transitioning?'visible':'hidden';
-  openingPhoto.style.opacity=String(1-smooth(.44,.7,reveal));
+  const photoOpacity=1-smooth(.44,.7,reveal);
+  openingPhoto.style.opacity=String(photoOpacity);
+  const headerChannel=Math.round(255*photoOpacity);
+  const screen=brand.closest('.screen');
+  screen.style.setProperty('--opening-header-color',`rgb(${headerChannel} ${headerChannel} ${headerChannel})`);
+  screen.style.setProperty('--opening-header-shadow',`rgb(0 0 0 / ${photoOpacity*.5})`);
+  screen.style.setProperty('--opening-brand-y',`${-openingHeight()*Math.max(0,Math.min(1,reveal))}px`);
   modelOpacity=smooth(.44,.7,reveal);
   layer.style.zIndex=transitioning?'2':'';
   if(transitioning&&!motionReduced){
