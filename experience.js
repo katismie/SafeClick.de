@@ -150,7 +150,10 @@ function paint(state){
    openingPhoto.style.transform='';
   }
  }
- const scale=visualHeight/end.height;
+ // Pull the camera back for render clearance, then restore apparent size in the compositor.
+ const pendantPose=openingPhoto&&state<0&&!motionReduced?1-smooth(.68,1,state+1):0;
+ const cameraClearance=interpolate(1,1.6,pendantPose);
+ const scale=visualHeight/end.height*cameraClearance;
  layer.style.visibility=restoring?'hidden':'visible';
  layer.style.left='0px';layer.style.top='0px';
  layer.style.width=`${end.width}px`;layer.style.height=`${end.height}px`;
@@ -161,12 +164,12 @@ function paint(state){
  const pointerGain=smooth(.9,1,state)*(photoReady?1-smooth(5.8,6,state):1);
  const tilt=interpolate(interpolate(85,82,t)-16*Math.sin(spin*Math.PI*2),85,operation)+mouseY*2*pointerGain;
  let roll=interpolate(interpolate(40,-12,t)+180*spin,360,operation);
- if(state<0&&!motionReduced)roll=interpolate(85,roll,smooth(.68,1,state+1));
+ roll=interpolate(roll,85,pendantPose);
  heroModel.orientation=`${-roll}deg ${28*Math.sin(spin*Math.PI)*(1-operation)}deg 0deg`;
  heroModel.shadowIntensity=0;
  if(heroModel.loaded){const time=photoReady&&state>=6?3:Math.max(0,Math.min(4,state-3));if(Math.abs(heroModel.currentTime-time)>.00001)heroModel.currentTime=time;}
  // Neutral-model fit in meters preserves the previous size without auto-framing each pose.
- const radius=.179346594*interpolate(.75,1.05,t);heroModel.cameraOrbit=`${angle+mouseX*3*pointerGain}deg ${tilt}deg ${radius}m`;heroModel.style.transform=`translate(${mouseX*6*pointerGain}px,${mouseY*4*pointerGain}px) rotate(0deg)`;
+ const radius=.179346594*interpolate(.75,1.05,t)*cameraClearance;heroModel.cameraOrbit=`${angle+75*pendantPose+mouseX*3*pointerGain}deg ${interpolate(tilt,90,pendantPose)}deg ${radius}m`;heroModel.style.transform=`translate(${mouseX*6*pointerGain}px,${mouseY*4*pointerGain}px) rotate(0deg)`;
  const titleRect=title.getBoundingClientRect(),target=brand.getBoundingClientRect();const size=parseFloat(getComputedStyle(title).fontSize),brandSize=parseFloat(getComputedStyle(brand).fontSize);
  morph.style.left=`${interpolate(titleRect.left,target.left,t)}px`;morph.style.top=`${interpolate(titleRect.top+scrollY-openingHeight(),target.top,t)}px`;morph.style.fontSize=`${interpolate(size,brandSize,t)}px`;morph.style.letterSpacing=`${interpolate(-.065*size,-1.2,t)}px`;
  morph.hidden=state<=0;title.style.opacity=state<=0?'1':'0';heading.querySelector('.eyebrow').style.opacity=String(1-t);
