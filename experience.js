@@ -105,7 +105,7 @@ if('scrollRestoration' in history)history.scrollRestoration='manual';
 window.addEventListener('pagehide',()=>{if(restoring)return;try{sessionStorage.setItem('safeclick-view',JSON.stringify({path:location.pathname,y:scrollY,state:frameState}))}catch{}});
 
 
-function sceneHeight(){return document.querySelector('.screen').clientHeight-openingHeight()}
+function sceneHeight(){return document.querySelector('.screen').clientHeight}
 function storyTop(){return story.getBoundingClientRect().top+scrollY}
 function interpolate(a,b,t){return a+(b-a)*t}
 
