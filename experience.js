@@ -145,7 +145,7 @@ function paint(state){
    const emerge=smooth(.68,1,reveal);
    centerX=interpolate(x,centerX,emerge);
    centerY=interpolate(y,centerY,emerge)-Math.sin(Math.PI*emerge)*Math.min(24,height*.035);
-   visualHeight=interpolate(86*imageScale*zoom,visualHeight,emerge);
+   visualHeight=interpolate(120*imageScale*zoom,visualHeight,emerge);
   }else{
    openingPhoto.style.transform='';
   }
