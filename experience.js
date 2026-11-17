@@ -15,52 +15,15 @@ const specsSection=document.querySelector('.technical-specs'),showcaseSection=do
 function specsTop(){return specsSection.getBoundingClientRect().top+scrollY}
 function showcaseScrollTop(){return showcaseSection.getBoundingClientRect().top+scrollY}
 const lifestyle=document.querySelector('.lifestyle-stage'),lifestylePhoto=lifestyle.querySelector('.lifestyle-photo');
-const lifestyleVideo=lifestyle.querySelector('.lifestyle-video');
 const lifestylePin=lifestyle.querySelector('.lifestyle-pin');
-const lifestylePlay=lifestyle.querySelector('.lifestyle-play');
-let lifestyleVisible=false, lifestyleFullscreen=false;
-function updateLifestylePlayback(){
- const available=Boolean(slideVideos[activeSlide])&&lifestyleVisible&&lifestyleFullscreen&&!document.hidden;
- lifestylePlay.hidden=!available;
- if(!available){
-  lifestyleVideo.pause();
-  lifestylePhoto.classList.remove('is-video');
- }
-}
-lifestylePlay.addEventListener('click',()=>{
- if(lifestylePlay.hidden)return;
- if(!lifestyleVideo.paused){lifestyleVideo.pause();return}
- lifestyleVideo.muted=true;
- lifestyleVideo.play().catch(()=>{
-  lifestylePlay.setAttribute('aria-label','Video erneut abspielen');
- });
-});
-lifestyleVideo.addEventListener('playing',()=>{
- if(lifestylePlay.hidden){lifestyleVideo.pause();return}
- lifestylePhoto.classList.add('is-video');
- lifestylePlay.setAttribute('aria-label','Video pausieren');
-});
-lifestyleVideo.addEventListener('pause',()=>{lifestylePlay.setAttribute('aria-label','Video abspielen')});
-lifestyleVideo.addEventListener('error',()=>lifestylePhoto.classList.remove('is-video'));
-new IntersectionObserver(([entry])=>{
- lifestyleVisible=entry.isIntersecting;
- updateLifestylePlayback();
-},{threshold:.2}).observe(lifestylePin);
-document.addEventListener('visibilitychange',updateLifestylePlayback);
 const lifestyleCopies=[...lifestyle.querySelectorAll('.lifestyle-copy')];
-const slideVideos=[lifestyleVideo.getAttribute('src'),lifestyleVideo.dataset.schoolSrc,lifestyleVideo.dataset.seniorSrc];
 const slidePhotos=[...lifestyle.querySelectorAll('.lifestyle-frames img')];
 const slideButtons=[...lifestyle.querySelectorAll('[data-slide-step]')];
 let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
 function moveLifestyleSlide(step){
  const next=Math.max(0,Math.min(slidePhotos.length-1,activeSlide+step));
  if(next===activeSlide)return;
- lifestyleVideo.pause();
- lifestylePhoto.classList.remove('is-video');
- if(slideVideos[next])lifestyleVideo.setAttribute('src',slideVideos[next]);
- else{lifestyleVideo.removeAttribute('src');lifestyleVideo.load()}
  activeSlide=next;
- updateLifestylePlayback();
  lifestylePhoto.dataset.slide=String(next);
  lifestyleCopies.forEach((copy,index)=>{copy.hidden=index!==next});
  slidePhotos.forEach((photo,index)=>photo.setAttribute('aria-hidden',String(index!==next)));
@@ -179,7 +142,7 @@ function paint(state){
  // Entry masks never animate during exit: fade the complete paragraph block.
  heroCopy.querySelectorAll('.line-text').forEach(line=>{if(t>.001)line.getAnimations().forEach(animation=>animation.cancel());line.style.opacity='1';line.style.transform='none'});
  heroPicker.style.opacity=String(smooth(-.25,0,state)*(1-smooth(.01,.4,state)));heroPicker.inert=state<0||state>.15;
- if(photoReady){const zoom=smooth(7,8,state),initialWidth=vw*(mobile?.88:.5);lifestylePhoto.style.width=`${interpolate(initialWidth,vw,zoom)}px`;lifestylePhoto.style.height=`${interpolate(initialWidth*941/1670,vh,zoom)}px`;lifestylePhoto.style.borderRadius=`${interpolate(24,0,zoom)}px`;const fullscreen=state>=7.999;if(fullscreen!==lifestyleFullscreen){lifestyleFullscreen=fullscreen;updateLifestylePlayback()}const shade=smooth(8,9,state),text=smooth(7.75,8,state);lifestylePhoto.style.setProperty('--photo-dim',String(shade*.18));lifestylePin.style.setProperty('--slide-width',lifestylePhoto.style.width);
+ if(photoReady){const zoom=smooth(7,8,state),initialWidth=vw*(mobile?.88:.5);lifestylePhoto.style.width=`${interpolate(initialWidth,vw,zoom)}px`;lifestylePhoto.style.height=`${interpolate(initialWidth*941/1670,vh,zoom)}px`;lifestylePhoto.style.borderRadius=`${interpolate(24,0,zoom)}px`;const shade=smooth(8,9,state),text=smooth(7.75,8,state);lifestylePhoto.style.setProperty('--photo-dim',String(shade*.18));lifestylePin.style.setProperty('--slide-width',lifestylePhoto.style.width);
  const activeCopy=lifestyleCopies[activeSlide];
  if(activeCopy){activeCopy.style.opacity=String(text);activeCopy.setAttribute('aria-hidden',String(text<.5))}lifestylePhoto.querySelector('.photo-scroll-hint').style.opacity=String(smooth(7.75,8,state))}
  updateCards(state);
@@ -325,7 +288,7 @@ if(!motionReduced&&matchMedia('(pointer:fine)').matches){
  document.documentElement.addEventListener('pointerleave',()=>{mouseTargetX=mouseTargetY=0;schedulePaint()});
 }
 // Duplicate visual lettering only; controls retain one accessible label.
-document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not(.lifestyle-play):not([data-slide-step]),summary').forEach(control=>{
+document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not([data-slide-step]),summary').forEach(control=>{
  const label=control.textContent.trim();if(!label)return;
  if(!control.hasAttribute('aria-label'))control.setAttribute('aria-label',label);
  const wrap=document.createElement('span');wrap.className='roll-label';wrap.setAttribute('aria-hidden','true');
