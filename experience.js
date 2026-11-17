@@ -24,8 +24,15 @@ const autoplayButton=lifestyle.querySelector('.lifestyle-autoplay');
 let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
 let carouselVisible=false, autoplayTimer, autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+const slideBars=slidePhotos.map(()=>{
+ const bar=document.createElement('span');
+ bar.setAttribute('aria-hidden','true');
+ slideCount.append(bar);
+ return bar;
+});
 function updateCarouselStatus(){
- slideCount.textContent=`${activeSlide+1} / ${slidePhotos.length}`;
+ slideCount.setAttribute('aria-label',`Bild ${activeSlide+1} von ${slidePhotos.length}`);
+ slideBars.forEach((bar,index)=>bar.classList.toggle('is-current',index===activeSlide));
  autoplayButton.textContent=autoplayEnabled?'Ⅱ':'▶';
  autoplayButton.setAttribute('aria-label',autoplayEnabled?'Automatischen Bildwechsel pausieren':'Automatischen Bildwechsel starten');
 }
