@@ -154,7 +154,8 @@ function paint(state){
  const pendantPose=openingPhoto&&state<0&&!motionReduced?1-smooth(.68,1,state+1):0;
  const heroClearance=interpolate(1.4,1,smooth(0,1,t));
  const cameraClearance=interpolate(heroClearance,1.65,pendantPose);
- const scale=visualHeight/end.height;
+ const diagonalBoost=smooth(-.68,0,state)*(1-smooth(0,.65,state));
+ const scale=visualHeight/end.height*(1+.12*diagonalBoost);
  layer.style.visibility=restoring?'hidden':'visible';
  layer.style.left='0px';layer.style.top='0px';
  layer.style.width=`${end.width}px`;layer.style.height=`${end.height}px`;
