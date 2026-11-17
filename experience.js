@@ -153,7 +153,11 @@ function paint(state){
  // Pull the camera back for render clearance, then restore apparent size in the compositor.
  const pendantPose=openingPhoto&&state<0&&!motionReduced?1-smooth(.68,1,state+1):0;
  const cameraClearance=interpolate(1,1.6,pendantPose);
- const scale=visualHeight/end.height*cameraClearance;
+ // Widen the hero render frustum and compensate with layer scale so the silhouette keeps its size.
+ const heroClearance=interpolate(1.35,1,smooth(0,1,t));
+ const fieldOfView=2*Math.atan(Math.tan(Math.PI/12)*heroClearance)*180/Math.PI;
+ heroModel.setAttribute('field-of-view',`${fieldOfView}deg`);
+ const scale=visualHeight/end.height*cameraClearance*heroClearance;
  layer.style.visibility=restoring?'hidden':'visible';
  layer.style.left='0px';layer.style.top='0px';
  layer.style.width=`${end.width}px`;layer.style.height=`${end.height}px`;
