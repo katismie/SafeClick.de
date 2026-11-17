@@ -20,9 +20,9 @@ const lifestyleCopies=[...lifestyle.querySelectorAll('.lifestyle-copy')];
 const slidePhotos=[...lifestyle.querySelectorAll('.lifestyle-frames img')];
 const slideButtons=[...lifestyle.querySelectorAll('[data-slide-step]')];
 const slideCount=lifestyle.querySelector('.lifestyle-count');
-const autoplayButton=lifestyle.querySelector('.lifestyle-autoplay');
 let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
-let carouselVisible=false, autoplayTimer, autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
+let carouselVisible=false, autoplayTimer;
+const autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 const slideBars=slidePhotos.map((photo,index)=>{
  const bar=document.createElement('button');
@@ -34,19 +34,12 @@ const slideBars=slidePhotos.map((photo,index)=>{
 });
 function updateCarouselStatus(){
  slideBars.forEach((bar,index)=>bar.setAttribute('aria-current',String(index===activeSlide)));
- autoplayButton.textContent=autoplayEnabled?'Ⅱ':'▶';
- autoplayButton.setAttribute('aria-label',autoplayEnabled?'Automatischen Bildwechsel pausieren':'Automatischen Bildwechsel starten');
 }
 function scheduleAutoplay(){
  clearTimeout(autoplayTimer);
  if(!autoplayEnabled||!carouselVisible||document.hidden||lifestylePin.matches(':hover, :focus-within'))return;
- autoplayTimer=setTimeout(()=>moveLifestyleSlide(activeSlide===slidePhotos.length-1?-activeSlide:1),6000);
+ autoplayTimer=setTimeout(()=>moveLifestyleSlide(activeSlide===slidePhotos.length-1?-activeSlide:1),4000);
 }
-autoplayButton.addEventListener('click',()=>{
- autoplayEnabled=!autoplayEnabled;
- updateCarouselStatus();
- scheduleAutoplay();
-});
 for(const event of ['pointerenter','pointerleave','focusin','focusout']){
  lifestylePin.addEventListener(event,()=>queueMicrotask(scheduleAutoplay));
 }
@@ -327,7 +320,7 @@ if(!motionReduced&&matchMedia('(pointer:fine)').matches){
  document.documentElement.addEventListener('pointerleave',()=>{mouseTargetX=mouseTargetY=0;schedulePaint()});
 }
 // Duplicate visual lettering only; controls retain one accessible label.
-document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not(.lifestyle-autoplay):not([data-slide-step]),summary').forEach(control=>{
+document.querySelectorAll('a:not(.header-brand),button:not(.menu-toggle):not([data-slide-step]),summary').forEach(control=>{
  const label=control.textContent.trim();if(!label)return;
  if(!control.hasAttribute('aria-label'))control.setAttribute('aria-label',label);
  const wrap=document.createElement('span');wrap.className='roll-label';wrap.setAttribute('aria-hidden','true');
