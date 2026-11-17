@@ -24,15 +24,16 @@ const autoplayButton=lifestyle.querySelector('.lifestyle-autoplay');
 let activeSlide=0, slideTouch=null, lastHorizontalWheel=0;
 let carouselVisible=false, autoplayTimer, autoplayEnabled=!matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const slideBars=slidePhotos.map(()=>{
- const bar=document.createElement('span');
- bar.setAttribute('aria-hidden','true');
+const slideBars=slidePhotos.map((photo,index)=>{
+ const bar=document.createElement('button');
+ bar.type='button';
+ bar.setAttribute('aria-label',`Bild ${index+1} von ${slidePhotos.length} anzeigen`);
+ bar.addEventListener('click',()=>moveLifestyleSlide(index-activeSlide));
  slideCount.append(bar);
  return bar;
 });
 function updateCarouselStatus(){
- slideCount.setAttribute('aria-label',`Bild ${activeSlide+1} von ${slidePhotos.length}`);
- slideBars.forEach((bar,index)=>bar.classList.toggle('is-current',index===activeSlide));
+ slideBars.forEach((bar,index)=>bar.setAttribute('aria-current',String(index===activeSlide)));
  autoplayButton.textContent=autoplayEnabled?'Ⅱ':'▶';
  autoplayButton.setAttribute('aria-label',autoplayEnabled?'Automatischen Bildwechsel pausieren':'Automatischen Bildwechsel starten');
 }
