@@ -281,3 +281,7 @@ footer.site-footer{padding-top:40px}
 .price-benefits{display:grid;gap:10px;margin:18px 0 0;padding:0;list-style:none}
 .price-benefits li{padding-left:24px;position:relative}
 .price-benefits li::before{content:'✓';position:absolute;left:0;color:#326534}
+
+.lifestyle-status{position:absolute;left:50%;top:calc(50% - var(--slide-height,28vw)/2 + 14px);transform:translateX(-50%);z-index:4;display:flex;align-items:center;gap:12px;padding:0 6px 0 14px;border-radius:999px;background:#15151bdd;color:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.lifestyle-autoplay{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font:inherit;cursor:pointer}
+.lifestyle-autoplay:focus-visible{outline:2px solid white;outline-offset:-3px}
