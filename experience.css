@@ -288,9 +288,6 @@ footer.site-footer{padding-top:40px}
 .lifestyle-count button::before{content:'';width:100%;height:3px;border-radius:3px;background:#ffffff80;box-shadow:0 0 4px #000a}
 .lifestyle-count button[aria-current="true"]::before{background:#fff}
 .lifestyle-count button:focus-visible{outline:2px solid #fff;outline-offset:-4px}
-.lifestyle-autoplay{display:grid;place-items:center;width:44px;height:44px;padding:0;border:0;border-radius:50%;background:transparent;color:inherit;font:inherit;cursor:pointer}
-.lifestyle-autoplay:focus-visible{outline:2px solid white;outline-offset:-3px}
 
 .lifestyle-nav button::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:2px 2px 0 0;transform:translateX(-1px) rotate(45deg)}
 .lifestyle-nav button[data-slide-step="-1"]::before{transform:translateX(1px) rotate(225deg)}
-.lifestyle-autoplay{text-shadow:0 0 5px #000}
