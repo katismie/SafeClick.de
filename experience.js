@@ -479,3 +479,41 @@ priceDialog.addEventListener('click',event=>{
  const rect=priceDialog.getBoundingClientRect();
  if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)priceDialog.close();
 });
+
+// Animate native disclosure panels while retaining summary keyboard behaviour.
+document.querySelectorAll('.specs-list details').forEach(details=>{
+ const summary=details.querySelector('summary');
+ const content=document.createElement('div');
+ content.className='spec-content';
+ while(summary.nextSibling)content.append(summary.nextSibling);
+ details.append(content);
+ let animation=null,contentAnimation=null;
+ const reducedMotion=matchMedia('(prefers-reduced-motion: reduce)');
+ function sync(){details.dataset.expanded=String(details.open);summary.setAttribute('aria-expanded',String(details.open))}
+ sync();
+ summary.addEventListener('click',event=>{
+  event.preventDefault();
+  const expand=details.dataset.expanded!=='true';
+  const startHeight=details.getBoundingClientRect().height;
+  const startOpacity=details.open?getComputedStyle(content).opacity:'0';
+  if(animation)animation.cancel();
+  if(contentAnimation)contentAnimation.cancel();
+  animation=contentAnimation=null;
+  details.open=true;
+  details.dataset.expanded=String(expand);
+  summary.setAttribute('aria-expanded',String(expand));
+  if(reducedMotion.matches){details.classList.remove('is-animating');details.open=expand;sync();return}
+  const endHeight=summary.getBoundingClientRect().height+(expand?content.getBoundingClientRect().height:0);
+  const options={duration:320,easing:'cubic-bezier(.22,1,.36,1)'};
+  animation=details.animate({height:[`${startHeight}px`,`${endHeight}px`]},options);
+  contentAnimation=content.animate({opacity:[startOpacity,expand?'1':'0']},options);
+  details.classList.add('is-animating');
+  animation.onfinish=()=>{
+   details.open=expand;
+   details.classList.remove('is-animating');
+   animation=contentAnimation=null;
+   sync();
+  };
+ });
+ details.addEventListener('toggle',()=>{if(!animation)sync()});
+});

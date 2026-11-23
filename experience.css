@@ -291,3 +291,10 @@ footer.site-footer{padding-top:40px}
 
 .lifestyle-nav button::before{content:'';width:8px;height:8px;border:solid currentColor;border-width:2px 2px 0 0;transform:translateX(-1px) rotate(45deg)}
 .lifestyle-nav button[data-slide-step="-1"]::before{transform:translateX(1px) rotate(225deg)}
+
+/* Smooth technical-specification disclosure, including the closing direction. */
+.specs-list details.is-animating{overflow:hidden}
+.specs-list summary::after{transition:transform .32s cubic-bezier(.22,1,.36,1)}
+.specs-list details[data-expanded="false"] summary::after{transform:translateY(-70%) rotate(45deg)}
+.specs-list details[data-expanded="true"] summary::after{transform:translateY(-25%) rotate(225deg)}
+@media(prefers-reduced-motion:reduce){.specs-list summary::after{transition:none}}
